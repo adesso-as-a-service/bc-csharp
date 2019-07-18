@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Math
 #if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
 #endif
-    public class BigInteger
+    public class BigInteger : IDisposable
     {
         // The first few odd primes
         /*
@@ -242,6 +242,22 @@ namespace Org.BouncyCastle.Math
         private int nBits = -1; // cache BitCount() value
         private int nBitLength = -1; // cache BitLength() value
         private int mQuote = 0; // -m^(-1) mod b, b = 2^32 (see Montgomery mult.), 0 when uninitialised
+
+        // This is a dirty fix, that allows you to overwrite a big integer, which contains sensitive data
+        public void Dispose() {
+            for (int i = 0; i < magnitude.Length; i++) {
+                magnitude[i] = 0;
+            }
+            sign = 0;
+            nBits = -1; 
+            nBitLength = -1; 
+            mQuote = 0;
+            GC.SuppressFinalize(this);
+        }
+
+        ~BigInteger() {
+            Dispose();
+        }
 
         private static int GetByteLength(
             int nBits)
